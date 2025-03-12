@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -25,22 +26,25 @@ export default function AdminDashboard({ session }) {
       <p>Welcome, {user?.name}!</p>
       <ul className="mt-4">
         <li>
-          <a href="/admin/projects" className="text-blue-500 hover:underline">
+          <Link
+            href="/admin/projects"
+            className="text-blue-500 hover:underline"
+          >
             Manage Projects
-          </a>
+          </Link>
         </li>
         <li>
-          <a href="/admin/blogs" className="text-blue-500 hover:underline">
+          <Link href="/admin/blogs" className="text-blue-500 hover:underline">
             Manage Blog Posts
-          </a>
+          </Link>
         </li>
         <li>
-          <a
+          <Link
             href="/admin/accomplishments"
             className="text-blue-500 hover:underline"
           >
             Manage Accomplishments
-          </a>
+          </Link>
         </li>
       </ul>
     </div>
