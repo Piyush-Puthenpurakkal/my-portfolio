@@ -1,0 +1,17 @@
+[
+    {
+      "slug": "first-post",
+      "title": "My First Blog Post",
+      "date": "2025-03-01",
+      "excerpt": "In this post, I share my journey into web development and what I've learned so far.",
+      "content": "Full content for my first blog post goes here..."
+    },
+    {
+      "slug": "nextjs-tips",
+      "title": "Next.js Tips & Tricks",
+      "date": "2025-03-05",
+      "excerpt": "A collection of tips for optimizing your Next.js projects and taking advantage of its features.",
+      "content": "Full content for the Next.js tips post goes here..."
+    }
+  ]
+  

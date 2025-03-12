@@ -1,0 +1,14 @@
+[
+    {
+      "title": "Certificate in Web Development",
+      "issuer": "XYZ Academy",
+      "date": "2024-01-15",
+      "description": "Learned advanced web development techniques.",
+      "url": "https://example.com/certificate"
+    },
+    {
+      "title": "Project: Awesome Portfolio",
+      "description": "A dynamic portfolio built with Next.js and Tailwind CSS."
+    }
+  ]
+  

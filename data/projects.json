@@ -1,0 +1,19 @@
+[
+    {
+      "title": "Portfolio Website",
+      "description": "A personal portfolio built with Next.js and Tailwind CSS.",
+      "techStack": ["Next.js", "Tailwind CSS", "Framer Motion"],
+      "image": "/projects/portfolio.png",
+      "liveUrl": "https://yourportfolio.com",
+      "repoUrl": "https://github.com/yourusername/portfolio"
+    },
+    {
+      "title": "Mini Link Mangement Web Application",
+      "description": "A full-stack mini link management application with authentication.",
+      "techStack": ["React", "Node.js", "MongoDB"],
+      "image": "/projects/mini_link_mgmt_sample.png",
+      "liveUrl": "https://mini-link-management-frontend.netlify.app",
+      "repoUrl": "https://github.com/Piyush-Puthenpurakkal/mini-link-management-frontend"
+    }
+  ]
+  
