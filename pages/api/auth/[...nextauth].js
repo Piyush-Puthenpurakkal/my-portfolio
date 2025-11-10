@@ -15,7 +15,12 @@ export const authOptions = {
           credentials.username === process.env.ADMIN_USERNAME &&
           credentials.password === process.env.ADMIN_PASSWORD
         ) {
-          return { id: 1, name: "Admin User", email: "admin@example.com" };
+          return {
+            id: 1,
+            name: "Admin User",
+            email: "admin@example.com",
+            isAdmin: true,
+          };
         }
         return null;
       },
@@ -28,11 +33,17 @@ export const authOptions = {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
+        token.isAdmin = user.isAdmin;
       }
       return token;
     },
     async session({ session, token }) {
-      session.user = { id: token.id, name: token.name, email: token.email };
+      session.user = {
+        id: token.id,
+        name: token.name,
+        email: token.email,
+        isAdmin: token.isAdmin,
+      };
       return session;
     },
     async redirect({ url, baseUrl }) {
