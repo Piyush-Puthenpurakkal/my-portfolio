@@ -29,7 +29,8 @@ export default function AdminDashboard({ session }) {
     summary: "",
   });
   const [loadingHomePageContent, setLoadingHomePageContent] = useState(true);
-  const [savingHomePageContent, setSavingHomePageContent] = useState(false);
+  const [savingTitle, setSavingTitle] = useState(false);
+  const [savingSummary, setSavingSummary] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -63,19 +64,39 @@ export default function AdminDashboard({ session }) {
     setError("");
   };
 
-  const handleSaveHomePageContent = async () => {
-    setSavingHomePageContent(true);
+  const handleSaveTitle = async () => {
+    setSavingTitle(true);
     setMessage("");
     setError("");
     try {
-      const res = await axios.put("/api/homepage-content", homepageContent, {
-        withCredentials: true,
-      });
+      const res = await axios.put(
+        "/api/homepage-content",
+        { title: homepageContent.title },
+        { withCredentials: true }
+      );
       setMessage(res.data.message);
     } catch (err) {
-      setError(err.response?.data?.message || "Error saving homepage content.");
+      setError(err.response?.data?.message || "Error saving title.");
     } finally {
-      setSavingHomePageContent(false);
+      setSavingTitle(false);
+    }
+  };
+
+  const handleSaveSummary = async () => {
+    setSavingSummary(true);
+    setMessage("");
+    setError("");
+    try {
+      const res = await axios.put(
+        "/api/homepage-content",
+        { summary: homepageContent.summary },
+        { withCredentials: true }
+      );
+      setMessage(res.data.message);
+    } catch (err) {
+      setError(err.response?.data?.message || "Error saving summary.");
+    } finally {
+      setSavingSummary(false);
     }
   };
 
@@ -228,11 +249,11 @@ export default function AdminDashboard({ session }) {
           />
         )}
         <button
-          onClick={handleSaveHomePageContent}
+          onClick={handleSaveTitle}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          disabled={savingHomePageContent || loadingHomePageContent}
+          disabled={savingTitle || loadingHomePageContent}
         >
-          {savingHomePageContent ? "Saving..." : "Save Title"}
+          {savingTitle ? "Saving Title..." : "Save Title"}
         </button>
       </div>
 
@@ -249,11 +270,11 @@ export default function AdminDashboard({ session }) {
           ></textarea>
         )}
         <button
-          onClick={handleSaveHomePageContent}
+          onClick={handleSaveSummary}
           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          disabled={savingHomePageContent || loadingHomePageContent}
+          disabled={savingSummary || loadingHomePageContent}
         >
-          {savingHomePageContent ? "Saving..." : "Save Summary"}
+          {savingSummary ? "Saving Summary..." : "Save Summary"}
         </button>
       </div>
     </div>

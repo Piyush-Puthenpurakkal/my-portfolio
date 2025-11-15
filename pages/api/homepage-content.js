@@ -24,27 +24,38 @@ export default async function handler(req, res) {
       console.log("NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET); // Log NEXTAUTH_SECRET
       const session = await getServerSession(req, res, authOptions); // Use getServerSession
       console.log("API Route Session:", session); // Log the session object
-      if (!session) {
-        // Temporarily remove isAdmin check
+      if (!session || !session.user.isAdmin) {
         return res.status(401).json({ message: "Unauthorized" });
-      }
-      // If session exists, but isAdmin is false, still unauthorized
-      if (!session.user || !session.user.isAdmin) {
-        return res.status(401).json({ message: "Unauthorized: Not an admin" });
       }
 
       try {
         const { title, summary } = req.body;
-        if (typeof title !== "string" || typeof summary !== "string") {
-          return res.status(400).json({ message: "Invalid content provided." });
-        }
-
         let content = await HomePageContent.findOne();
+
         if (!content) {
-          content = await HomePageContent.create({ title, summary });
+          // If no content exists, create it with provided fields or defaults
+          content = await HomePageContent.create({
+            title: title || "",
+            summary: summary || "",
+          });
         } else {
-          content.title = title;
-          content.summary = summary;
+          // Update only the fields that are provided in the request body
+          if (title !== undefined) {
+            if (typeof title !== "string") {
+              return res
+                .status(400)
+                .json({ message: "Invalid title provided." });
+            }
+            content.title = title;
+          }
+          if (summary !== undefined) {
+            if (typeof summary !== "string") {
+              return res
+                .status(400)
+                .json({ message: "Invalid summary provided." });
+            }
+            content.summary = summary;
+          }
           await content.save();
         }
         res
