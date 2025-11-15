@@ -1,6 +1,7 @@
 import dbConnect from "../../lib/mongodb";
 import HomePageContent from "../../models/HomePageContent";
-import { getSession } from "next-auth/react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./auth/[...nextauth]"; // Import authOptions
 
 export default async function handler(req, res) {
   await dbConnect();
@@ -20,9 +21,16 @@ export default async function handler(req, res) {
       break;
 
     case "PUT":
-      const session = await getSession({ req });
-      if (!session || !session.user.isAdmin) {
+      console.log("NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET); // Log NEXTAUTH_SECRET
+      const session = await getServerSession(req, res, authOptions); // Use getServerSession
+      console.log("API Route Session:", session); // Log the session object
+      if (!session) {
+        // Temporarily remove isAdmin check
         return res.status(401).json({ message: "Unauthorized" });
+      }
+      // If session exists, but isAdmin is false, still unauthorized
+      if (!session.user || !session.user.isAdmin) {
+        return res.status(401).json({ message: "Unauthorized: Not an admin" });
       }
 
       try {

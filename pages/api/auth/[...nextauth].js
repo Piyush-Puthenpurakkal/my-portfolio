@@ -27,6 +27,17 @@ export const authOptions = {
     }),
   ],
   session: { strategy: "jwt" },
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -47,7 +58,15 @@ export const authOptions = {
       return session;
     },
     async redirect({ url, baseUrl }) {
-      if (url.startsWith(baseUrl)) return url;
+      // Always redirect to admin dashboard after successful login if no specific callbackUrl
+      if (url === baseUrl) {
+        return `${baseUrl}/admin`;
+      }
+      // Allows redirecting to a specific callbackUrl if it's within the base URL
+      if (url.startsWith(baseUrl)) {
+        return url;
+      }
+      // Fallback to admin if the URL is external or unexpected
       return `${baseUrl}/admin`;
     },
   },
@@ -56,6 +75,7 @@ export const authOptions = {
     signIn: "/auth/signin", // points to our custom sign-in page
     error: "/?error=Authentication%20failed",
   },
+  url: process.env.NEXTAUTH_URL, // Explicitly set NEXTAUTH_URL
 };
 
 export default NextAuth(authOptions);
