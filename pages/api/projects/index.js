@@ -1,5 +1,6 @@
 import connectToDatabase from "../../../lib/mongodb";
 import Project from "../../../models/Project";
+import { requireAdmin } from "../../../lib/requireAdmin";
 
 export default async function handler(req, res) {
   await connectToDatabase();
@@ -12,12 +13,20 @@ export default async function handler(req, res) {
       res.status(500).json({ error: "Error fetching projects" });
     }
   } else if (req.method === "POST") {
+    const session = await requireAdmin(req, res);
+
+    if (!session) {
+      return;
+    }
+
     try {
       const project = new Project(req.body);
       await project.save();
-      res
-        .status(201)
-        .json({ message: "Project created successfully", project });
+
+      res.status(201).json({
+        message: "Project created successfully",
+        project,
+      });
     } catch (error) {
       console.error("Error creating project:", error);
       res.status(500).json({ error: "Error creating project" });
