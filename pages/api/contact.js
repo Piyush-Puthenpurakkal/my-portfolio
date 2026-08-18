@@ -1,5 +1,6 @@
 import connectToDatabase from "../../lib/mongodb";
 import ContactMessage from "../../models/ContactMessage";
+import { requireAdmin } from "../../lib/requireAdmin";
 
 export default async function handler(req, res) {
   await connectToDatabase();
@@ -7,19 +8,33 @@ export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
       const message = new ContactMessage(req.body);
+
       await message.save();
-      res
-        .status(201)
-        .json({ message: "Message received", messageData: message });
+
+      res.status(201).json({
+        message: "Message received",
+        messageData: message,
+      });
     } catch (error) {
-      res.status(500).json({ error: "Error saving contact message" });
+      res.status(500).json({
+        error: "Error saving contact message",
+      });
     }
   } else if (req.method === "GET") {
+    const session = await requireAdmin(req, res);
+
+    if (!session) {
+      return;
+    }
+
     try {
       const messages = await ContactMessage.find({});
+
       res.status(200).json({ messages });
     } catch (error) {
-      res.status(500).json({ error: "Error fetching contact messages" });
+      res.status(500).json({
+        error: "Error fetching contact messages",
+      });
     }
   } else {
     res.setHeader("Allow", ["GET", "POST"]);

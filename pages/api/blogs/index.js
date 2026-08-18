@@ -1,5 +1,6 @@
 import connectToDatabase from "../../../lib/mongodb";
 import BlogPost from "../../../models/BlogPost";
+import { requireAdmin } from "../../../lib/requireAdmin";
 
 export default async function handler(req, res) {
   await connectToDatabase();
@@ -12,12 +13,24 @@ export default async function handler(req, res) {
       res.status(500).json({ error: "Error fetching blog posts" });
     }
   } else if (req.method === "POST") {
+    const session = await requireAdmin(req, res);
+
+    if (!session) {
+      return;
+    }
+
     try {
       const post = new BlogPost(req.body);
       await post.save();
-      res.status(201).json({ message: "Blog post created successfully", post });
+
+      res.status(201).json({
+        message: "Blog post created successfully",
+        post,
+      });
     } catch (error) {
-      res.status(500).json({ error: "Error creating blog post" });
+      res.status(500).json({
+        error: "Error creating blog post",
+      });
     }
   } else {
     res.setHeader("Allow", ["GET", "POST"]);

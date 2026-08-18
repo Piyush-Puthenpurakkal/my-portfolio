@@ -21,9 +21,7 @@ export default async function handler(req, res) {
       break;
 
     case "PUT":
-      console.log("NEXTAUTH_SECRET:", process.env.NEXTAUTH_SECRET); // Log NEXTAUTH_SECRET
       const session = await getServerSession(req, res, authOptions); // Use getServerSession
-      console.log("API Route Session:", session); // Log the session object
       if (!session || !session.user.isAdmin) {
         return res.status(401).json({ message: "Unauthorized" });
       }

@@ -1,5 +1,6 @@
 import connectToDatabase from "../../../lib/mongodb";
 import Accomplishment from "../../../models/Accomplishment";
+import { requireAdmin } from "../../../lib/requireAdmin";
 
 export default async function handler(req, res) {
   await connectToDatabase();
@@ -7,22 +8,33 @@ export default async function handler(req, res) {
   if (req.method === "GET") {
     try {
       const accomplishments = await Accomplishment.find({});
+
       res.status(200).json({ accomplishments });
     } catch (error) {
-      res.status(500).json({ error: "Error fetching accomplishments" });
+      res.status(500).json({
+        error: "Error fetching accomplishments",
+      });
     }
   } else if (req.method === "POST") {
+    const session = await requireAdmin(req, res);
+
+    if (!session) {
+      return;
+    }
+
     try {
       const accomplishment = new Accomplishment(req.body);
+
       await accomplishment.save();
-      res
-        .status(201)
-        .json({
-          message: "Accomplishment created successfully",
-          accomplishment,
-        });
+
+      res.status(201).json({
+        message: "Accomplishment created successfully",
+        accomplishment,
+      });
     } catch (error) {
-      res.status(500).json({ error: "Error creating accomplishment" });
+      res.status(500).json({
+        error: "Error creating accomplishment",
+      });
     }
   } else {
     res.setHeader("Allow", ["GET", "POST"]);
