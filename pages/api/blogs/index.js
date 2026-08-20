@@ -6,13 +6,32 @@ export default async function handler(req, res) {
   await connectToDatabase();
 
   if (req.method === "GET") {
-    try {
-      const posts = await BlogPost.find({});
-      res.status(200).json({ posts });
-    } catch (error) {
-      res.status(500).json({ error: "Error fetching blog posts" });
+  try {
+    const { slug } = req.query;
+
+    if (slug) {
+      const post = await BlogPost.findOne({ slug });
+
+      if (!post) {
+        return res.status(404).json({
+          error: "Blog post not found",
+        });
+      }
+
+      return res.status(200).json({ post });
     }
-  } else if (req.method === "POST") {
+
+    const posts = await BlogPost.find({}).sort({ date: -1 });
+
+    return res.status(200).json({ posts });
+  } catch (error) {
+    console.error("Error fetching blog posts:", error);
+
+    return res.status(500).json({
+      error: "Error fetching blog posts",
+    });
+  }
+} else if (req.method === "POST") {
     const session = await requireAdmin(req, res);
 
     if (!session) {
