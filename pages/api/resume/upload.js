@@ -73,9 +73,7 @@ export default async function handler(req, res) {
       .end(`Method ${req.method} Not Allowed`);
   }
 
-  const tempUploadDir = path.join(
-    process.cwd(),
-    ".tmp-resume"
+  const tempUploadDir = path.join("/tmp", "resume-upload"
   );
 
   try {
