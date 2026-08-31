@@ -10,6 +10,7 @@
     "tailwind:init": "tailwindcss init -p"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.0",
     "axios": "^1.12.2",
     "date-fns": "^4.1.0",
     "formidable": "^3.5.4",
