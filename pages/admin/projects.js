@@ -1,6 +1,8 @@
+
+
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../api/auth/[...nextauth]";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSWR, { mutate } from "swr";
 import Link from "next/link";
 
@@ -44,6 +46,11 @@ export default function AdminProjects() {
   const [description, setDescription] = useState("");
   const [techStack, setTechStack] = useState("");
   const [image, setImage] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [imageUploading, setImageUploading] = useState(false);
+
+  const imageInputRef = useRef(null);
   const [liveUrl, setLiveUrl] = useState("");
   const [repoUrl, setRepoUrl] = useState("");
 
@@ -59,35 +66,113 @@ export default function AdminProjects() {
       .map((item) => item.trim())
       .filter(Boolean);
 
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview("");
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(imageFile);
+    setImagePreview(previewUrl);
+
+    return () => {
+      URL.revokeObjectURL(previewUrl);
+    };
+  }, [imageFile]);
+
+  function handleImageSelect(e) {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setFormError("Please choose a PNG, JPEG, or WebP image.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setFormError("Image is too large. Maximum size is 10 MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setFormError("");
+    setImageFile(file);
+  }
+
   function clearForm() {
     setTitle("");
     setDescription("");
     setTechStack("");
     setImage("");
+    setImageFile(null);
     setLiveUrl("");
     setRepoUrl("");
     setEditingId(null);
     setMessage("");
     setFormError("");
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
 
     setSaving(true);
+    setImageUploading(false);
     setMessage("");
     setFormError("");
 
-    const project = {
-      title: title.trim(),
-      description: description.trim(),
-      techStack: parseTechStack(techStack),
-      image: image.trim(),
-      liveUrl: liveUrl.trim(),
-      repoUrl: repoUrl.trim(),
-    };
-
     try {
+      let imageReference = image.trim();
+
+      if (imageFile) {
+        setImageUploading(true);
+
+        const formData = new FormData();
+        formData.append("image", imageFile);
+
+        const uploadResponse = await fetch(
+          "/api/projects/upload-image",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResponse.ok) {
+          throw new Error(
+            uploadResult.message ||
+            "Unable to upload project image."
+          );
+        }
+
+        imageReference = uploadResult.imageUrl;
+        setImageUploading(false);
+      }
+
+      const project = {
+        title: title.trim(),
+        description: description.trim(),
+        techStack: parseTechStack(techStack),
+        image: imageReference,
+        liveUrl: liveUrl.trim(),
+        repoUrl: repoUrl.trim(),
+      };
+
       const response = await fetch(
         editingId ? `/api/projects/${editingId}` : "/api/projects",
         {
@@ -106,17 +191,18 @@ export default function AdminProjects() {
       }
 
       const successMessage = editingId
-  ? "Project updated successfully."
-  : "Project created successfully.";
+        ? "Project updated successfully."
+        : "Project created successfully.";
 
-await mutate("/api/projects");
+      await mutate("/api/projects");
 
-clearForm();
-setMessage(successMessage);
+      clearForm();
+      setMessage(successMessage);
     } catch (err) {
       setFormError(err.message || "Something went wrong.");
     } finally {
       setSaving(false);
+      setImageUploading(false);
     }
   }
 
@@ -126,8 +212,13 @@ setMessage(successMessage);
     setDescription(project.description || "");
     setTechStack(project.techStack?.join(", ") || "");
     setImage(project.image || "");
+    setImageFile(null);
     setLiveUrl(project.liveUrl || "");
     setRepoUrl(project.repoUrl || "");
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
 
     setMessage("");
     setFormError("");
@@ -340,19 +431,58 @@ setMessage(successMessage);
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-800">
-                  Fallback image
+                  Project image
                 </label>
 
                 <input
-                  type="text"
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  placeholder="/project-image.jpg"
-                  className={inputClass}
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={handleImageSelect}
+                  className="hidden"
                 />
 
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={saving || imageUploading}
+                  className="secondary-button disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Choose Image
+                </button>
+
+                {imageFile && (
+                  <div className="mt-3 flex items-center gap-3">
+                    {imagePreview && (
+                      <img
+                        src={imagePreview}
+                        alt="Selected project image preview"
+                        className="h-16 w-24 rounded-lg border border-slate-200 object-cover"
+                      />
+                    )}
+
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-slate-700">
+                        {imageFile.name}
+                      </p>
+
+                      <p className="text-xs text-slate-400">
+                        {(imageFile.size / 1024 / 1024).toFixed(2)} MB
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {!imageFile && image && (
+                  <div className="mt-3">
+                    <p className="text-xs text-slate-500">
+                      Existing project image is already configured.
+                    </p>
+                  </div>
+                )}
+
                 <p className="mt-2 text-xs text-slate-400">
-                  Optional. The live URL powers the public hover preview.
+                  PNG, JPEG, or WebP. Maximum 10 MB.
                 </p>
               </div>
             </div>
@@ -363,11 +493,13 @@ setMessage(successMessage);
                 disabled={saving}
                 className="primary-button disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {saving
-                  ? "Saving..."
-                  : editingId
-                  ? "Update Project"
-                  : "Add Project"}
+                {imageUploading
+                  ? "Uploading Image..."
+                  : saving
+                    ? "Saving..."
+                    : editingId
+                      ? "Update Project"
+                      : "Add Project"}
               </button>
 
               {editingId && (
