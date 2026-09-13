@@ -535,7 +535,7 @@ export default function AdminDashboard({ session }) {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <input
                   type="file"
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf"
                   onChange={handleFileChange}
                   className="block max-w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-100 file:px-4 file:py-2 file:font-semibold file:text-slate-700 hover:file:bg-slate-200"
                 />
